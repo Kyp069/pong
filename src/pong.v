@@ -12,7 +12,8 @@ module pong
 	output wire      blank,
 	output wire      hsync,
 	output wire      vsync,
-	output wire      pixel
+	output wire      pixel,
+	output wire      sound
 );
 //-------------------------------------------------------------------------------------------------
 
@@ -38,31 +39,38 @@ always @(posedge clock) if(ce) if(pCountReset)
 //-------------------------------------------------------------------------------------------------
 
 reg[1:0] ballDir = 2'b11;
+
+reg turnL = 0;
+always @(posedge clock) if(ce) if(pCountReset)
+	if(game) turnL <=  ballDir[0] && ballX == 96 && ballY >= rPadY-1 && ballY < rPadY+padSize;
+
+reg turnR = 0;
+always @(posedge clock) if(ce) if(pCountReset)
+	if(game) turnR <= !ballDir[0] && ballX == 30 && ballY >= lPadY-1 && ballY < lPadY+padSize;
+
+reg turnU = 0;
+always @(posedge clock) if(ce) if(pCountReset)
+	turnU <= ballDir[1] && ballY == 268;
+
+reg turnD = 0;
+always @(posedge clock) if(ce) if(pCountReset)
+	turnD <= !ballDir[1] && ballY ==  46;
+
 reg[6:0] ballX = 7'd0;
 reg[8:0] ballY = 9'd46;
 
 always @(posedge clock) if(ce) if(pCountReset) begin
 	if(turnL) ballDir[0] = 1'b0;
 	if(turnR) ballDir[0] = 1'b1;
-
+	if(turnU) ballDir[1] = 1'b0;
+	if(turnD) ballDir[1] = 1'b1;
 	if(ballDir[0]) ballX = ballX+1'd1; else ballX = ballX-1'd1;
-
-	if( ballDir[1] && ballY == 268) ballDir[1] = 1'b0;
-	if(!ballDir[1] && ballY ==  46) ballDir[1] = 1'b1;
-	if( ballDir[1]) ballY = ballY+9'd2; else ballY = ballY-9'd2;
+	if(ballDir[1]) ballY = ballY+9'd2; else ballY = ballY-9'd2;
 end
 
 reg[1:0] point = 2'b00;
 always @(posedge clock) if(ce) if(pCountReset)
-	point <= { ballDir[0] && ballX == 7'd99, !ballDir[0] && ballX == 7'd27 };
-
-reg turnL = 0;
-always @(posedge clock) if(ce) if(pCountReset)
-	if(game) turnL <=  ballDir[0] && ballX == 96 && ballY >= rPadY && ballY < rPadY+padSize;
-
-reg turnR = 0;
-always @(posedge clock) if(ce) if(pCountReset)
-	if(game) turnR <= !ballDir[0] && ballX == 30 && ballY >= lPadY && ballY < lPadY+padSize;
+	point <= { ballDir[0] && ballX == 99, !ballDir[0] && ballX == 27 };
 
 reg game = 0;
 always @(posedge clock) if(ce) if(pCountReset)
@@ -103,6 +111,32 @@ end
 
 //-------------------------------------------------------------------------------------------------
 
+reg[8:0] cc4K0 = 0;
+wire cc4K0Reset = cc4K0 == 499;
+always @(posedge clock) if(ce) if(cc4K0Reset) cc4K0 <= 1'd0; else cc4K0 <= cc4K0+1'd1;
+
+wire playPoint = point[0] || point[1];
+wire playWall = display && (turnU || turnD);
+wire playPad = turnL || turnR;
+wire playAny = playPoint || playWall || playPad;
+
+reg[7:0] ccPlay = 0;
+wire play = !ccPlay[7];
+always @(posedge clock, posedge playAny)
+	if(playAny) ccPlay <= 1'd0; else
+	if(ce) if(cc4K0Reset) if(play) ccPlay <= ccPlay+1'd1;
+
+reg[2:0] tone;
+always @(posedge clock) if(ce) if(cc4K0Reset) tone <= tone+1'd1;
+
+reg[1:0] toneSel;
+always @(posedge clock) if(ce) if(cc4K0Reset)
+	if(playPoint) toneSel <= 2'd2; else
+	if(playWall) toneSel <= 2'd1; else
+	if(playPad) toneSel <= 2'd0;
+
+//-------------------------------------------------------------------------------------------------
+
 wire net = vCount[2] && (hCount == 63 && vCount >= 44 && vCount < 276);
 wire top = hCount[0] && (hCount >= 27 && hCount < 100 && vCount >= 44 && vCount < 46);
 wire bottom = hCount[0] && (hCount >= 27 && hCount < 100 && vCount >= 274 && vCount < 276);
@@ -119,6 +153,7 @@ assign blank = hCount >= 116 || vCount >= 306;
 assign hsync = hCount >= 116 && hCount < 116+8;
 assign vsync = vCount >= 306 && vCount < 306+2;
 assign pixel = display & (net | top | bottom | ball | padL | padR | number[4]);
+assign sound = game && play && tone[toneSel];
 
 //-------------------------------------------------------------------------------------------------
 endmodule

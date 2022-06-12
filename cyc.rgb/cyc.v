@@ -9,6 +9,8 @@ module cyc
 	output wire[1:0] sync,
 	output wire[5:0] rgb,
 
+	output wire[1:0] dsg,
+
 	input  wire[5:0] joy,
 
 	input  wire      button,
@@ -29,7 +31,7 @@ end
 //-------------------------------------------------------------------------------------------------
 
 wire reset = ~button;
-wire hsync, vsync, pixel;
+wire blank, hsync, vsync, pixel, sound;
 
 wire[7:0] joy1 = { 2'd0, ~joy };
 wire[7:0] joy2 = { 2'd0, ~joy };
@@ -41,15 +43,20 @@ pong pong
 	.reset  (reset  ),
 	.joy1   (joy1   ),
 	.joy2   (joy2   ),
+	.blank  (blank  ),
 	.hsync  (hsync  ),
 	.vsync  (vsync  ),
-	.pixel  (pixel  )
+	.pixel  (pixel  ),
+	.sound  (sound  )
 );
 
 //-------------------------------------------------------------------------------------------------
 
 assign sync = { 1'b1, ~(hsync^vsync) };
-assign rgb = {6{ pixel }};
+assign rgb = blank ? 1'd0 : {6{ pixel }};
+
+dsg #(3) dsg1(clock, power, { 3'd0, sound }, dsg[1]);
+dsg #(3) dsg0(clock, power, { 3'd0, sound }, dsg[0]);
 
 assign led = 1'd0;
 

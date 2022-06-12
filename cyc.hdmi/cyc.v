@@ -8,6 +8,8 @@ module cyc
 
 	output wire[7:0] tmds,
 
+	output wire[1:0] dsg,
+
 	input  wire[5:0] joy,
 
 	input  wire      button,
@@ -28,7 +30,7 @@ end
 //-------------------------------------------------------------------------------------------------
 
 wire reset = ~button;
-wire blank, vsync, hsync, pixel;
+wire blank, vsync, hsync, pixel, sound;
 
 wire[7:0] joy1 = { 2'd0, ~joy };
 wire[7:0] joy2 = { 2'd0, ~joy };
@@ -43,7 +45,8 @@ pong pong
 	.blank  (blank  ),
 	.vsync  (vsync  ),
 	.hsync  (hsync  ),
-	.pixel  (pixel  )
+	.pixel  (pixel  ),
+	.sound  (sound  )
 );
 
 //-------------------------------------------------------------------------------------------------
@@ -62,6 +65,9 @@ hdmi HDMI
 );
 
 //-------------------------------------------------------------------------------------------------
+
+dsg #(3) dsg1(clock, power, { 3'd0, sound }, dsg[1]);
+dsg #(3) dsg0(clock, power, { 3'd0, sound }, dsg[0]);
 
 assign led = 1'd0;
 

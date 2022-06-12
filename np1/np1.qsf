@@ -80,6 +80,9 @@ set_location_assignment PIN_M1 -to rgb[2]
 set_location_assignment PIN_J1 -to rgb[1]
 set_location_assignment PIN_H1 -to rgb[0]
 
+set_location_assignment PIN_B4 -to dsg[1]
+set_location_assignment PIN_A3 -to dsg[0]
+
 set_location_assignment PIN_A20 -to joyCk
 set_location_assignment PIN_B20 -to joyLd
 set_location_assignment PIN_AA18 -to joyS
@@ -88,6 +91,7 @@ set_location_assignment PIN_B19 -to joyD
 set_location_assignment PIN_Y21 -to stm
 set_location_assignment PIN_E4 -to led
 
+set_global_assignment -name VERILOG_FILE ../src/dsg.v
 set_global_assignment -name VERILOG_FILE ../src/pong.v
 set_global_assignment -name VERILOG_FILE joystick.v
 set_global_assignment -name VERILOG_FILE np1.v

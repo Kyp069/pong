@@ -58,6 +58,9 @@ set_location_assignment PIN_P1 -to tmds[2]
 set_location_assignment PIN_L15 -to tmds[1]
 set_location_assignment PIN_L16 -to tmds[0]
 
+set_location_assignment PIN_T12 -to dsg[1]
+set_location_assignment PIN_R11 -to dsg[0]
+
 set_location_assignment PIN_K16 -to joy[5]
 set_location_assignment PIN_K15 -to joy[4]
 set_location_assignment PIN_J14 -to joy[3]
@@ -93,6 +96,7 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name VERILOG_FILE cyc.v
 set_global_assignment -name VERILOG_FILE hdmi.v
 set_global_assignment -name VERILOG_FILE encoder.v
+set_global_assignment -name VERILOG_FILE ../src/dsg.v
 set_global_assignment -name VERILOG_FILE ../src/pong.v
 set_global_assignment -name QIP_FILE ips/serializer.qip
 set_global_assignment -name QIP_FILE ips/pll.qip

@@ -9,6 +9,8 @@ module np1
 	output wire[ 1:0] sync,
 	output wire[17:0] rgb,
 
+	output wire[ 1:0] dsg,
+
 	output wire       joyCk,
 	output wire       joyLd,
 	output wire       joyS,
@@ -49,7 +51,7 @@ joystick joystick
 //-------------------------------------------------------------------------------------------------
 
 wire reset = joy1[4] && joy2[4];
-wire blank, hsync, vsync, pixel;
+wire blank, hsync, vsync, pixel, sound;
 
 pong pong
 (
@@ -61,13 +63,17 @@ pong pong
 	.blank  (blank  ),
 	.hsync  (hsync  ),
 	.vsync  (vsync  ),
-	.pixel  (pixel  )
+	.pixel  (pixel  ),
+	.sound  (sound  )
 );
 
 //-------------------------------------------------------------------------------------------------
 
 assign sync = { 1'b1, ~(hsync^vsync) };
 assign rgb = blank ? 1'd0 : {18{ pixel }};
+
+dsg #(3) dsg1(clock, power, { 3'd0, sound }, dsg[1]);
+dsg #(3) dsg0(clock, power, { 3'd0, sound }, dsg[0]);
 
 assign led = 1'b1;
 assign stm = 1'b0;
